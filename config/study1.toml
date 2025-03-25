@@ -1,0 +1,5 @@
+[electron]
+vz_min = -15
+vz_max = 5
+chi2_min = -5
+chi2_max = 5
