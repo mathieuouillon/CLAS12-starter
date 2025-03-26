@@ -6,10 +6,9 @@ Reader::Reader(Histograms& histograms, const toml::parse_result& config)
     : m_histograms(histograms), m_config(config) {
 }
 
-Reader::~Reader() {
-}
+Reader::~Reader() = default;
 
-auto Reader::operator()(const std::string& file) -> void {
+auto Reader::operator()(const std::string& file) const -> void {
 
     auto dict = hipo::dictionary();
     auto reader = hipo::reader(file, dict);
@@ -26,13 +25,12 @@ auto Reader::operator()(const std::string& file) -> void {
     while (reader.next(hipo_event, REC_Particle, REC_Calorimeter, REC_Event, REC_Cherenkov) /*&& counter < 10*/) {
         if (REC_Particle.getRows() == 0) continue;
         counter++;
-        // REC_Particle.show(); // Display the bank
 
         Topology topology = get_topology(REC_Particle);
 
-        auto possible_trigger_electron = Core::find_trigger_electron(topology.electrons);
-        if (!possible_trigger_electron.has_value()) continue;
-        Core::Particle electron = possible_trigger_electron.value();
+        auto possible_electron = Core::find_trigger_electron(topology.electrons);
+        if (!possible_electron.has_value()) continue;
+        Core::Particle electron = possible_electron.value();
 
         bool pass_electron_cuts = select_electron(electron, REC_Calorimeter, REC_Cherenkov);
         if (!pass_electron_cuts) continue;
@@ -58,7 +56,7 @@ auto Reader::get_topology(const hipo::bank& REC_Particle) const -> Topology {
         double chi2pid = REC_Particle.get<double>("chi2pid", i);
         double E = Core::compute_energy(px, py, pz, pid);
 
-        if (pid == 11) electrons.emplace_back(pid, status, i, -1, Core::Constantes::ElectronMass, px, py, pz, E, vx, vy, vz, vt, beta, chi2pid);
+        if (pid == 11) electrons.emplace_back(pid, status, i, charge, Core::Constantes::ElectronMass, px, py, pz, E, vx, vy, vz, vt, beta, chi2pid);
     }
 
     return {.electrons = electrons};

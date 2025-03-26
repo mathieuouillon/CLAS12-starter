@@ -70,21 +70,13 @@ class Particle {
     auto mass() const -> double;
 
     // ****** operators
-    auto operator==(const Particle& other) const -> bool {
-        return m_index == other.m_index;
-    }
+    auto operator==(const Particle& other) const -> bool { return m_index == other.m_index; }
 
-    auto operator!=(const Particle& other) const -> bool {
-        return m_index != other.m_index;
-    }
+    auto operator!=(const Particle& other) const -> bool { return m_index != other.m_index; }
 
-    auto operator<(const Particle& other) const -> bool {
-        return m_index < other.m_index;
-    }
+    auto operator<(const Particle& other) const -> bool { return m_index < other.m_index; }
 
-    auto operator>(const Particle& other) const -> bool {
-        return m_index > other.m_index;
-    }
+    auto operator>(const Particle& other) const -> bool { return m_index > other.m_index; }
 };
 }  // namespace Core
 

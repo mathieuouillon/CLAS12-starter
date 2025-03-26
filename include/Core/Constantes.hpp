@@ -4,7 +4,7 @@
 
 namespace Core::Constantes {
 static constexpr double ElectronMass = 0.00051099891;
-static constexpr double ProtonMass = 0.938;
+static constexpr double ProtonMass = 0.938272;
 static constexpr double ProtonMassSquare = ProtonMass * ProtonMass;
 static constexpr double NeutronMass = 0.93956536;
 static constexpr double NeutronMassSquare = NeutronMass * NeutronMass;
@@ -17,4 +17,5 @@ static constexpr double Rho0Mass = 0.770;
 static constexpr double Rho0MassSquare = Rho0Mass * Rho0Mass;
 static constexpr double KaonMass = 0.493677;
 static constexpr double KaonMassSquare = KaonMass * KaonMass;
+
 }  // namespace Core::Constantes

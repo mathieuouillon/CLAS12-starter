@@ -40,7 +40,7 @@ class Reader {
     ~Reader();
 
     // ****** public methods
-    auto operator()(const std::string& file) -> void;
+    auto operator()(const std::string& file) const -> void;
 };
 
 }  // namespace study1

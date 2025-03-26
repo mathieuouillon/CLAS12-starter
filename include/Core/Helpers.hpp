@@ -10,11 +10,27 @@
 #include <vector>
 
 // Project headers
-#include <Core/Particle.hpp>
 #include <Core/Constantes.hpp>
+#include <Core/Particle.hpp>
 
 namespace Core {
 
+/**
+ * @brief Formats a given value into a string with a specified precision.
+ * 
+ * This function takes a value of any type that can be streamed into a 
+ * `std::stringstream` and converts it into a string representation with 
+ * a fixed number of decimal places.
+ * 
+ * Mostly use to format floating-point numbers into a string with a fixed 
+ * number of decimal. 
+ * 
+ * @tparam T The type of the value to be formatted.
+ * @param a The value to format.
+ * @param precision The number of decimal places to include in the formatted string.
+ *                   Defaults to 2 if not specified.
+ * @return std::string The formatted string representation of the input value.
+ */
 template <typename T>
 inline auto format_string(const T a, int precision = 2) -> std::string {
     std::stringstream stream;
@@ -22,6 +38,27 @@ inline auto format_string(const T a, int precision = 2) -> std::string {
     return stream.str();
 }
 
+/**
+ * @brief Reads all files recursively in a given directory, select only hipo files
+ *        and reduces the output size based on a percentage of the total files.
+ * 
+ * @param directory The root directory to start the recursive search for files.
+ * @param dataSize A percentage (0 to 100) indicating the proportion of filtered files to include in the output.
+ *                 Defaults to 100, meaning all filtered files will be included.
+ * 
+ * @return A vector of strings containing the paths of the filtered and reduced files.
+ * 
+ * @details
+ * - The function uses a recursive directory iterator to traverse the directory structure.
+ * - Files are filtered to include only those with ".hipo" in their names.
+ * - The filtered files are sorted alphabetically.
+ * - The output size is reduced to a percentage of the total filtered files, as specified by the `dataSize` parameter.
+ * 
+ * @note
+ * - The function assumes the directory exists and is accessible.
+ * - If `dataSize` is set to a value less than 100, the output vector will contain fewer files.
+ * - The function uses C++17 filesystem library and C++20 ranges library features.
+ */
 inline auto read_recursive_file_in_directory(const std::filesystem::path& directory, const float dataSize = 100) -> std::vector<std::string> {
     auto f = [](const std::filesystem::directory_entry& entry) {
         return std::string(entry.path());
@@ -42,36 +79,85 @@ inline auto read_recursive_file_in_directory(const std::filesystem::path& direct
     return output;
 }
 
-inline auto find_trigger_electron(std::vector<Core::Particle>& electrons) -> std::optional<Core::Particle> {
-    auto result = std::ranges::find_if(electrons, [](const Core::Particle& electron) { return electron.status() < 0; });
-    if (result == electrons.end()) return std::nullopt;
-    Core::Particle electron = *result;
-
-    // Sanity check, probably not needed
-    if (electron.p() == 0.0) return std::nullopt;
-
-    return electron;
+/**
+ * @brief Finds the first trigger electron from a list of electrons.
+ *
+ * This function searches through a vector of `Core::Particle` objects representing electrons
+ * and returns the first electron that satisfies the condition of having a negative status.
+ * If no such electron is found, or if the found electron has a momentum of zero, the function
+ * returns `std::nullopt`.
+ *
+ * @param electrons A vector of `Core::Particle` objects representing electrons.
+ * @return An `std::optional<Core::Particle>` containing the first trigger electron if found,
+ *         or `std::nullopt` if no valid trigger electron is found.
+ */
+inline auto find_trigger_electron(const std::vector<Core::Particle>& electrons) -> std::optional<Core::Particle> {
+    if (auto result = std::ranges::find_if(electrons, [](const Core::Particle& electron) { return electron.status() < 0; });
+        result != electrons.end() && result->p() != 0.0) {
+        return *result;
+    }
+    return std::nullopt;
 }
 
-inline auto find_most_energetic_electron(std::vector<Core::Particle>& electrons) -> std::optional<Core::Particle> {
-    auto result = std::ranges::max(electrons, [](const Core::Particle& a, const Core::Particle& b) { return a.E() < b.E(); });
-    Core::Particle electron = result;
+/**
+ * @brief Finds the most energetic electron from a list of electrons.
+ *
+ * This function takes a vector of `Core::Particle` objects representing electrons
+ * and returns the electron with the highest energy. If the input vector is empty
+ * or if no valid electron with non-zero momentum is found, the function returns
+ * `std::nullopt`.
+ *
+ * @param electrons A vector of `Core::Particle` objects representing electrons.
+ * @return An `std::optional<Core::Particle>` containing the most energetic electron
+ *         if found, or `std::nullopt` if the input vector is empty or no valid
+ *         electron is found.
+ */
+inline auto find_most_energetic_electron(const std::vector<Core::Particle>& electrons) -> std::optional<Core::Particle> {
+    if (electrons.empty()) return std::nullopt;
 
-    // if (electron.p() == 0.0) return std::nullopt;
+    if (auto result = std::ranges::max_element(electrons, [](const Core::Particle& a, const Core::Particle& b) { return a.E() < b.E(); });
+        result != electrons.end() && result->p() != 0.0) {
+        return *result;
+    }
 
-    return electron;
+    return std::nullopt;
 }
 
+/**
+ * @brief Computes the total energy of a particle given its momentum components and particle ID.
+ *
+ * This function calculates the energy of a particle using the relativistic energy-momentum relation:
+ * E = sqrt(px^2 + py^2 + pz^2 + m^2), where m is the mass of the particle determined by its PID.
+ *
+ * @param px The x-component of the particle's momentum (in GeV/c).
+ * @param py The y-component of the particle's momentum (in GeV/c).
+ * @param pz The z-component of the particle's momentum (in GeV/c).
+ * @param pid The particle ID (PDG code) used to determine the particle's mass.
+ *            Supported PIDs:
+ *              - 11: Electron
+ *              - 22: Photon
+ *              - 211, -211: Charged Pions
+ *              - 321, -321: Charged Kaons
+ *              - 2212, -2212: Protons
+ *              - 2112, -2112: Neutrons
+ *            For unsupported PIDs, the function returns NaN.
+ *
+ * @return The total energy of the particle (in GeV). If the PID is unsupported, returns NaN.
+ */
 inline auto compute_energy(double px, double py, double pz, int pid) -> double {
-    double mass = std::numeric_limits<double>::quiet_NaN();
-    if (pid == 11)
-        mass = Core::Constantes::ElectronMass;
-    if (pid == 22)
-        mass = 0.;
-    if (pid == 211 || pid == -211)
-        mass = Core::Constantes::PionMass;
-    if (pid == 321 || pid == -321)
-        mass = Core::Constantes::KaonMass;
+    constexpr auto get_mass = [](int pid) -> double {
+        switch (pid) {
+            case 11: return Core::Constantes::ElectronMass;
+            case 22: return 0.0;
+            case 211: case -211: return Core::Constantes::PionMass;
+            case 321: case -321: return Core::Constantes::KaonMass;
+            case 2212: case -2212: return Core::Constantes::ProtonMass;
+            case 2112: case -2112: return Core::Constantes::NeutronMass;
+            default: return std::numeric_limits<double>::quiet_NaN();
+        }
+    };
+
+    double mass = get_mass(pid);
     return std::hypot(std::hypot(px, py, pz), mass);
 }
 
@@ -135,68 +221,42 @@ inline double warp_neg_pos_pi(double angle) {
 }
 
 /**
- * @brief Determines the sector based on the given angle phi.
+ * @brief Generates all unique pairs of elements from a given range.
  * 
- * This function takes an angle phi (in degrees) and determines which sector 
- * it belongs to. The sectors are defined as follows:
- * - Sector 1: -30 <= phi < 30
- * - Sector 2: 30 <= phi < 90
- * - Sector 3: 90 <= phi < 150
- * - Sector 4: phi >= 150 or phi < -150
- * - Sector 5: -150 <= phi < -90
- * - Sector 6: -90 <= phi < -30
+ * This function takes a forward range as input and returns a vector of pairs,
+ * where each pair represents a unique combination of two distinct elements
+ * from the range. The order of elements in the pairs corresponds to their
+ * order in the input range.
  * 
- * @param phi The angle in degrees for which the sector needs to be determined.
- * @return int The sector number (1 to 6) or -1 if the angle does not fall into any sector.
+ * @tparam Range A forward range type that satisfies the `std::ranges::forward_range` concept
+ *               and whose elements are copyable.
+ * @param range The input range from which unique pairs are generated.
+ * @return std::vector<std::pair<std::ranges::range_value_t<Range>, std::ranges::range_value_t<Range>>>
+ *         A vector containing all unique pairs of elements from the input range.
+ * 
+ * @note The function pre-allocates memory for the resulting vector to improve efficiency.
+ *       The number of pairs generated is `(n * (n - 1)) / 2`, where `n` is the number of
+ *       elements in the input range.
+ * 
+ * @example
+ * std::vector<int> numbers = {1, 2, 3};
+ * auto pairs = generate_unique_pairs(numbers);
+ * // pairs will contain: {(1, 2), (1, 3), (2, 3)}
  */
-inline auto determine_sector(double phi) -> int {
-    if (phi <= 30 && phi > -30) {
-        return 1;
-    } else if (phi <= 90 && phi > 30) {
-        return 2;
-    } else if (phi <= 150 && phi > 90) {
-        return 3;
-    } else if (phi > 150 || phi <= -150) {
-        return 4;
-    } else if (phi <= -90 && phi > -150) {
-        return 5;
-    } else if (phi <= -30 && phi > -90) {
-        return 6;
-    }
-    return -1;
-}
+template <std::ranges::forward_range Range>
+requires std::copyable<std::ranges::range_value_t<Range>>
+[[nodiscard]] auto generate_unique_pairs(const Range& range) -> std::vector<std::pair<std::ranges::range_value_t<Range>, std::ranges::range_value_t<Range>>> {
+    using T = std::ranges::range_value_t<Range>;
+    std::vector<std::pair<T, T>> pairs;
+    pairs.reserve((std::ranges::distance(range) * (std::ranges::distance(range) - 1)) / 2); // Pre-allocate memory for efficiency
 
-template <class iterator_type>
-class combination_generator {
-    iterator_type first;
-    iterator_type last;
-    std::vector<bool> use;
-    unsigned r;
-    using element_type = typename std::iterator_traits<iterator_type>::value_type;
-
-   public:
-    combination_generator(iterator_type first_, iterator_type last_, unsigned r_)
-        : first(first_), last(last_), r(r_) {
-        use.resize(std::distance(first, last), false);
-        if (r > use.size()) throw std::domain_error("can't select more elements than exist for combination");
-        std::fill(use.end() - r, use.end(), true);
+    for (auto it1 = std::ranges::begin(range); it1 != std::ranges::end(range); ++it1) {
+        for (auto it2 = std::next(it1); it2 != std::ranges::end(range); ++it2) {
+            pairs.emplace_back(*it1, *it2);
+        }
     }
 
-    bool operator()(std::vector<std::vector<element_type>>& result) {
-        iterator_type c = first;
-        std::vector<element_type> v;
-        v.reserve(r);
-        for (unsigned i = 0; i < use.size(); ++i, ++c)
-            if (use[i]) v.emplace_back(*c);
-
-        result.emplace_back(v);
-        return std::next_permutation(use.begin(), use.end());
-    }
-};
-
-template <class iterator_type>
-combination_generator<iterator_type> MakeCombinationGenerator(iterator_type first, iterator_type last, unsigned r) {
-    return combination_generator<iterator_type>(first, last, r);
+    return pairs;
 }
 
 /**
@@ -209,29 +269,41 @@ combination_generator<iterator_type> MakeCombinationGenerator(iterator_type firs
  * to two decimal places.
  *
  * @param values A vector of double values to be binned.
- * @param numBins The number of bins to divide the values into. Default is 2.
+ * @param numBins The number of bins to divide the values into. Default is 6.
  *
  * @note The function prints the bin edges to the standard output.
  */
-inline auto find_binning(std::vector<double> values, int numBins = 6) -> void {
-    int counts_per_bin = static_cast<int>(values.size()) / numBins;
+inline auto find_binning(const std::vector<double>& values, int numBins = 6) -> void {
+    if (values.empty() || numBins <= 0) {
+        std::cerr << "Error: Invalid input. Values must not be empty, and numBins must be positive." << std::endl;
+        return;
+    }
 
-    std::ranges::sort(values);
+    int counts_per_bin = static_cast<int>(values.size()) / numBins;
+    if (counts_per_bin == 0) {
+        std::cerr << "Error: Number of bins exceeds the number of values." << std::endl;
+        return;
+    }
+
+    auto sorted_values = values;
+    std::ranges::sort(sorted_values);
 
     std::vector<double> bin_edges;
-    bin_edges.push_back(values.front());
-    for (int edge = 1; edge < numBins; edge++)
-        bin_edges.push_back(values.at(counts_per_bin * edge));
+    bin_edges.reserve(numBins + 1);
+    bin_edges.push_back(sorted_values.front());
+    for (int edge = 1; edge < numBins; ++edge) {
+        bin_edges.push_back(sorted_values.at(counts_per_bin * edge));
+    }
+    bin_edges.push_back(sorted_values.back());
 
-    bin_edges.push_back(values.back());
-
-    for (auto& elm : bin_edges)
+    for (auto& elm : bin_edges) {
         elm = std::ceil(elm * 100.0) / 100.0;
+    }
 
     std::cout << "bin_edges = [";
-    for (auto elm : bin_edges) {
-        std::cout << elm;
-        if (&elm != &bin_edges.back()) std::cout << ", ";
+    for (size_t i = 0; i < bin_edges.size(); ++i) {
+        std::cout << bin_edges[i];
+        if (i != bin_edges.size() - 1) std::cout << ", ";
     }
     std::cout << "]" << std::endl;
 }

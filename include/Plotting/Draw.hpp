@@ -283,12 +283,12 @@ struct OptionTH2 {
     const bool log_z = false;
 
     const std::string label_x;
-    const float label_x_offset = 0.8;
-    const float label_x_size = 0.05;
+    const float label_x_offset = 0.8f;
+    const float label_x_size = 0.05f;
 
     const std::string label_y;
-    const float label_y_offset = 1.0;
-    const float label_y_size = 0.05;
+    const float label_y_offset = 1.0f;
+    const float label_y_size = 0.05f;
 };
 
 inline auto draw_hist2D(const std::shared_ptr<TH2D>& h, const std::string& path, const OptionTH2& args = {}) -> void {
