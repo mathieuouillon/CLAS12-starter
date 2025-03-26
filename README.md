@@ -3,7 +3,6 @@ A minimalistic GitHub repository to start your CLAS12 analysis in C++.
 
 It use the [HIPO](https://github.com/gavalian/hipo) library develop by Gavalian with some modifications.
 
-
 # Instruction to build it
 ## Dependencies
 - Meson and ninja:
