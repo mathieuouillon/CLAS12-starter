@@ -4,8 +4,14 @@ project(
   version: '0.1',
   default_options: [
     'cpp_std=c++20',
+    'warning_level=3',
+    'buildtype=debug',
+    'strip=true',
   ],
 )
+
+cpp = meson.get_compiler('cpp')
+message(cpp.get_id())
 
 # fmt dependency
 fmt = subproject('fmt')
@@ -24,7 +30,6 @@ root_dep = dependency(
 # handle ROOT
 root_dep_inc_dirs = []
 root_dep_link_args = []
-if root_dep.found()
   root_dep_inc_dirs = include_directories(
     run_command('root-config', '--incdir', check: true).stdout().strip(),
   )
@@ -34,10 +39,8 @@ if root_dep.found()
     '-L' + root_libdir,
     '-lCore',
     '-lGenVector',
-    '-lROOTDataFrame',
     '-lROOTVecOps',
     '-lTreePlayer',
-    '-lROOTGpadv7',
     '-lMathCore',
     '-lRIO',
     '-lHist',
@@ -45,7 +48,6 @@ if root_dep.found()
     '-lGraf',
     '-lMatrix'
   ]
-endif
 root_dep_inc_dirs = include_directories(
   run_command('root-config', '--incdir', check: true).stdout().strip(),
 )

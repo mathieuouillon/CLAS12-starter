@@ -28,27 +28,7 @@ hipo_sources = files(
   'utils.cpp',
   'wrapper.cpp',
   'writer.cpp',
-)
-hipo_headers = files(
-  'bank.h',
-  'datastream.h',
-  'dictionary.h',
-  'event.h',
-  'fizika.h',
-  'fusion.h',
-  'hipoexceptions.h',
-  'json.h',
-  'jsonutil.h',
-  'node.h',
-  'parser.h',
-  'reaction.h',
-  'reader.h',
-  'record.h',
-  'recordbuilder.h',
-  'tuple.h',
-  'twig.h',
-  'utils.h',
-  'writer.h',
+  'hipoeventiterator.cpp',
 )
 
 hipo_lib = library(

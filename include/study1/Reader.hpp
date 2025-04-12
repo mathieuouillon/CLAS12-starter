@@ -16,7 +16,7 @@
 #include <Core/Particle.hpp>
 #include <Core/ReadBank.hpp>
 #include <study1/Histograms.hpp>
-
+#include <hipo4/hipoeventiterator.h>
 namespace study1 {
 
 class Reader {

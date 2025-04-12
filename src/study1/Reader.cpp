@@ -10,21 +10,16 @@ Reader::~Reader() = default;
 
 auto Reader::operator()(const std::string& file) const -> void {
 
-    auto dict = hipo::dictionary();
-    auto reader = hipo::reader(file, dict);
-    auto hipo_event = hipo::event();
+    hipo::hipoeventfile events(file);
 
-    fmt::println("Entries: {}", reader.getEntries());
+    for (auto event : events) {
 
-    auto REC_Particle = hipo::bank(dict.getSchema("REC::Particle"));
-    auto REC_Calorimeter = hipo::bank(dict.getSchema("REC::Calorimeter"));
-    auto REC_Cherenkov = hipo::bank(dict.getSchema("REC::Cherenkov"));
-    auto REC_Event = hipo::bank(dict.getSchema("REC::Event"));
+        hipo::bank REC_Particle = event.getBank("REC::Particle");
+        hipo::bank REC_Calorimeter = event.getBank("REC::Calorimeter");
+        hipo::bank REC_Cherenkov = event.getBank("REC::Cherenkov");
+        hipo::bank REC_Event = event.getBank("REC::Event");
 
-    int counter = 0;
-    while (reader.next(hipo_event, REC_Particle, REC_Calorimeter, REC_Event, REC_Cherenkov) /*&& counter < 10*/) {
         if (REC_Particle.getRows() == 0) continue;
-        counter++;
 
         Topology topology = get_topology(REC_Particle);
 
@@ -34,6 +29,7 @@ auto Reader::operator()(const std::string& file) const -> void {
 
         bool pass_electron_cuts = select_electron(electron, REC_Calorimeter, REC_Cherenkov);
         if (!pass_electron_cuts) continue;
+
     }
 }
 
