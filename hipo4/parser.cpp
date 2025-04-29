@@ -48,7 +48,7 @@ namespace hipo {
 
 
 // returns a number from 0 up to, but excluding x
-const int getrandom (const int x)
+int getrandom(const int x)
 {
 	if (x <= 0)
 		return 0;
@@ -59,7 +59,7 @@ const int getrandom (const int x)
 
 }   // end of getrandom
 
-const int roll (const int howmany, const int die)
+int roll(const int howmany, const int die)
 {
 	int count;
 	int total = 0;
@@ -74,7 +74,7 @@ const int roll (const int howmany, const int die)
 
 // returns true if a x% probability exists
 // eg. percent (80) will be true 80% of the time
-const bool percent (const int prob)
+bool percent(const int prob)
   {
   if (prob <= 0)
     return false;
@@ -202,17 +202,17 @@ double DoPercent (double arg)
     return 0.0;
   }
 
-const double DoMin (const double arg1, const double arg2)
+double DoMin(const double arg1, const double arg2)
   {
   return (arg1 < arg2 ? arg1 : arg2);
   }
 
-const double DoMax (const double arg1, const double arg2)
+double DoMax(const double arg1, const double arg2)
   {
   return (arg1 > arg2 ? arg1 : arg2);
   }
 
-const double DoFmod (const double arg1, const double arg2)
+double DoFmod(const double arg1, const double arg2)
   {
   if (arg2 == 0.0)
     throw std::runtime_error ("Divide by zero in mod");
@@ -220,17 +220,17 @@ const double DoFmod (const double arg1, const double arg2)
   return fmod (arg1, arg2);
   }
 
-const double DoPow (const double arg1, const double arg2)
+double DoPow(const double arg1, const double arg2)
   {
   return pow (arg1, arg2);
   }
 
-const double DoRoll (const double arg1, const double arg2)
+double DoRoll(const double arg1, const double arg2)
   {
   return roll (static_cast <int> (arg1), static_cast <int> (arg2));
   }
 
-const double DoIf (const double arg1, const double arg2, const double arg3)
+double DoIf(const double arg1, const double arg2, const double arg3)
   {
   if (arg1 != 0.0)
     return arg2;
@@ -239,8 +239,8 @@ const double DoIf (const double arg1, const double arg2, const double arg3)
   }
 
 typedef double (*OneArgFunction)  (double arg);
-typedef const double (*TwoArgFunction)  (const double arg1, const double arg2);
-typedef const double (*ThreeArgFunction)  (const double arg1, const double arg2, const double arg3);
+typedef double (*TwoArgFunction)  (const double arg1, const double arg2);
+typedef double (*ThreeArgFunction)  (const double arg1, const double arg2, const double arg3);
 
 // maps of function names to functions
 static std::map<std::string, OneArgFunction>    OneArgumentFunctions;
@@ -296,7 +296,7 @@ static int LoadThreeArgumentFunctions ()
   return 0;
   } // end of LoadThreeArgumentFunctions
 
-const Parser::TokenType Parser::GetToken (const bool ignoreSign)
+Parser::TokenType Parser::GetToken(const bool ignoreSign)
   {
   word_.erase (0, std::string::npos);
   
@@ -448,7 +448,7 @@ static int doLoadOneArgumentFunctions = LoadOneArgumentFunctions ();
 static int doLoadTwoArgumentFunctions = LoadTwoArgumentFunctions ();
 static int doLoadThreeArgumentFunctions = LoadThreeArgumentFunctions ();
 
-const double Parser::Primary (const bool get)   // primary (base) tokens
+double Parser::Primary(const bool get)   // primary (base) tokens
   {
   
   if (get)
@@ -555,7 +555,7 @@ const double Parser::Primary (const bool get)   // primary (base) tokens
   
   } // end of Parser::Primary 
 
-const double Parser::Term (const bool get)    // multiply and divide
+double Parser::Term(const bool get)    // multiply and divide
   {
   double left = Primary (get);
   while (true)
@@ -577,7 +577,7 @@ const double Parser::Term (const bool get)    // multiply and divide
     }   // end of loop
   } // end of Parser::Term
 
-const double Parser::AddSubtract (const bool get)  // add and subtract
+double Parser::AddSubtract(const bool get)  // add and subtract
   {
   double left = Term (get);
   while (true)
@@ -591,7 +591,7 @@ const double Parser::AddSubtract (const bool get)  // add and subtract
     }   // end of loop
   } // end of Parser::AddSubtract
 
-const double Parser::Comparison (const bool get)  // LT, GT, LE, EQ etc.
+double Parser::Comparison(const bool get)  // LT, GT, LE, EQ etc.
   {
   double left = AddSubtract (get);
   while (true)
@@ -609,7 +609,7 @@ const double Parser::Comparison (const bool get)  // LT, GT, LE, EQ etc.
     }   // end of loop
   } // end of Parser::Comparison
 
-const double Parser::Expression (const bool get)  // AND and OR
+double Parser::Expression(const bool get)  // AND and OR
   {
   double left = Comparison (get);
   while (true)
@@ -633,7 +633,7 @@ const double Parser::Expression (const bool get)  // AND and OR
     }   // end of loop
   } // end of Parser::Expression
 
-const double Parser::CommaList (const bool get)  // expr1, expr2
+double Parser::CommaList(const bool get)  // expr1, expr2
   {
   double left = Expression (get);
   while (true)
@@ -646,7 +646,7 @@ const double Parser::CommaList (const bool get)  // expr1, expr2
     }   // end of loop
   } // end of Parser::CommaList
 
-const double Parser::Evaluate ()  // get result
+double Parser::Evaluate()  // get result
   {
   pWord_    = program_.c_str ();
   type_     = NONE;
@@ -657,7 +657,7 @@ const double Parser::Evaluate ()  // get result
   }
 
 // change program and evaluate it
-const double Parser::Evaluate (const std::string & program)  // get result
+double Parser::Evaluate(const std::string &program)  // get result
   {
   program_  = program;
   return Evaluate ();

@@ -94,7 +94,7 @@ class structure {
     int getGroup() const;
     int getItem() const;
     void init(const char* buffer, int size);
-    void initNoCopy(const char* buffer, int size);
+    void initNoCopy(const char *buffer);
 
     const char* getAddress();
     virtual void show() const;
@@ -126,7 +126,7 @@ class structure {
         return *reinterpret_cast<int64_t*>(&structureAddress[index + dataOffset]);
     }
 
-    std::string getStringAt(int index);
+    std::string getStringAt();
 
     void putIntAt(int index, int value) {
         *reinterpret_cast<int32_t*>(&structureAddress[index + dataOffset]) = value;
@@ -152,7 +152,7 @@ class structure {
         *reinterpret_cast<int64_t*>(&structureAddress[index + dataOffset]) = value;
     }
 
-    void putStringAt(int index, std::string& str);
+    void putStringAt(std::string &str);
 
     virtual void notify() {}
     friend class event;
@@ -176,10 +176,6 @@ class composite : public node {
     composite() {};
 
     composite(int size) { allocate(size); };
-
-    composite(int group, int item, int size) {};
-
-    composite(const char* format) {}
 
     composite(int group, int item, const char* format, int capacity);
 

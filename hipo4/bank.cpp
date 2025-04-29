@@ -47,7 +47,7 @@ namespace hipo {
   structure::structure(int __group, int __item, std::string &str){
     int length = str.length();
     initStructureBySize(__group,__item, 6, length);
-    putStringAt(0,str);
+    putStringAt(str);
   }
 
   bool structure::allocate(int size){
@@ -102,7 +102,7 @@ namespace hipo {
       auto item = (int) (*reinterpret_cast<uint8_t *>(structureAddress+2));
       return item;
     }
-    void         structure::initNoCopy(const char *buffer, int size){
+    void         structure::initNoCopy(const char *buffer){
         structureAddress = const_cast<char*>(buffer);
     }
 
@@ -117,7 +117,7 @@ namespace hipo {
          getGroup(),getItem(),getType(),getHeaderSize(), getSize(), getDataSize(), dataOffset, structureBuffer.size());
     }
 
-    std::string  structure::getStringAt(int index){
+    std::string  structure::getStringAt(){
         int length = getSize();
         auto *string_ch = (char *) malloc(length+1);
         std::memcpy(string_ch, &structureBuffer[8],length);
@@ -127,7 +127,7 @@ namespace hipo {
         return result;
     }
 
-    void         structure::putStringAt(int index, std::string &str){
+    void         structure::putStringAt(std::string &str){
       int strLen = str.length();
       std::memcpy(&structureBuffer[8],&str[0],strLen);
     }

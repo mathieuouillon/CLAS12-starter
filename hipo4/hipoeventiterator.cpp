@@ -2,18 +2,16 @@
 
 namespace hipo {
 
-// hipoeventfile::begin() and end() implementations
 hipoeventfile::iterator hipoeventfile::begin() {
-    reader.rewind();  // reset to start of file (if already read, rewind index)
-    return iterator(&reader, &dict);
+    reader.rewind();
+    return {&reader, &dict};
 }
 
 hipoeventfile::iterator hipoeventfile::end() {
-    return iterator();  // default (at_end=true) indicates end-of-stream
+    return {};
 }
 
-// hipoeventfile::iterator private constructor
-hipoeventfile::iterator::iterator(hipo::reader* rdr, hipo::dictionary* dict)
+hipoeventfile::iterator::iterator(hipo::reader* rdr, dictionary* dict)
     : reader_ptr(rdr), dict_ptr(dict), at_end(false) {
     // Advance to the first event
     if (!reader_ptr || !reader_ptr->next(current_event)) {
@@ -27,7 +25,6 @@ hipoeventfile::iterator::iterator(hipo::reader* rdr, hipo::dictionary* dict)
     }
 }
 
-// Pre-increment operator: move to next event in the file
 hipoeventfile::iterator& hipoeventfile::iterator::operator++() {
     if (!reader_ptr || at_end) {
         // already at end, do nothing
@@ -46,11 +43,10 @@ hipoeventfile::iterator& hipoeventfile::iterator::operator++() {
     return *this;
 }
 
-// Inequality comparison
-bool hipoeventfile::iterator::operator!=(const hipoeventfile::iterator& other) const {
+bool hipoeventfile::iterator::operator!=(const iterator& other) const {
     // Two iterators are not equal if one is at end and the other is not.
-    bool thisEnd = at_end;
-    bool otherEnd = other.at_end;
+    const bool thisEnd = at_end;
+    const bool otherEnd = other.at_end;
     if (thisEnd && otherEnd) {
         return false;  // both at end (equal)
     }

@@ -92,7 +92,7 @@ namespace hipo {
     void     event::getStructureNoCopy(const char *buffer, hipo::structure &str, int group, int item){
        std::pair<int,int> index = getStructurePosition(buffer,group,item);
        if(index.first>0){
-         str.initNoCopy(&buffer[index.first], index.second + 8);
+         str.initNoCopy(&buffer[index.first]);
          str.notify();
        } else {
          str.initStructureBySize(group,item,1,0);
@@ -110,9 +110,6 @@ namespace hipo {
          str.notify();
          //printf("*** error *** : structure (%5d,%5d) does not exist\n", group,item);
        }
-    }
-    void   event::override(hipo::structure &str){
-
     }
 
     void   event::replace(hipo::bank &bank){
@@ -193,10 +190,6 @@ namespace hipo {
   }
   void   event::write(hipo::node &node){
       add(node);
-  }
-
-  void   event::read(hipo::node  &node, int group, int item){
-
   }
 
 void event::get(hipo::node &_n, int group, int item){

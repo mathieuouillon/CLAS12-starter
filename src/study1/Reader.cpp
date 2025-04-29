@@ -14,10 +14,10 @@ auto Reader::operator()(const std::string& file) const -> void {
 
     for (auto event : events) {
 
-        hipo::bank REC_Particle = event.getBank("REC::Particle");
-        hipo::bank REC_Calorimeter = event.getBank("REC::Calorimeter");
-        hipo::bank REC_Cherenkov = event.getBank("REC::Cherenkov");
-        hipo::bank REC_Event = event.getBank("REC::Event");
+        hipo::bank REC_Particle = event.get_bank("REC::Particle");
+        hipo::bank REC_Calorimeter = event.get_bank("REC::Calorimeter");
+        hipo::bank REC_Cherenkov = event.get_bank("REC::Cherenkov");
+        hipo::bank REC_Event = event.get_bank("REC::Event");
 
         if (REC_Particle.getRows() == 0) continue;
 
