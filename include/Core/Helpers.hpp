@@ -308,4 +308,26 @@ inline auto find_binning(const std::vector<double>& values, int numBins = 6) -> 
     std::cout << "]" << std::endl;
 }
 
+/**
+ * @brief Selects runs from a vector of file names based on a vector of run numbers.
+ *
+ * This function filters a vector of file names to include only those that contain
+ * any of the specified run numbers. The filtering is done using a lambda function
+ * that checks if the run number is present in the file name.
+ *
+ * @param runs A vector of file names to be filtered.
+ * @param vec A vector of run numbers to match against the file names.
+ * @return A vector of strings containing the filtered file names that match the run numbers.
+ */
+ inline auto select_runs(const std::vector<std::string>& runs, const std::vector<std::string>& vec) -> std::vector<std::string> {
+    auto filtered = runs | std::ranges::views::filter([&vec](const std::string& file_name) {
+                        return std::ranges::any_of(vec, [&file_name](const std::string& run_num) {
+                            return file_name.find(run_num) != std::string::npos;
+                        });
+                    });
+
+    // Convert the filtered view into a vector.
+    return std::vector<std::string>(filtered.begin(), filtered.end());
+}
+
 }  // namespace Core
