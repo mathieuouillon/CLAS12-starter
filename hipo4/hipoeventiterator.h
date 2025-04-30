@@ -19,7 +19,7 @@ namespace hipo {
         using const_iterator = iterator;
 
     private:
-        reader reader;
+        hipo::reader reader;
         dictionary dict;
 
     public:

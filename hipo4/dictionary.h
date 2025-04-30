@@ -147,8 +147,8 @@ class schema {
   private:
     std::map<std::string,schema> factory;
   public:
-    dictionary()= default;;
-    virtual ~dictionary()= default;;
+    dictionary()= default;
+    virtual ~dictionary()= default;
 
     std::vector<std::string> getSchemaList();
     void    addSchema(schema sc){ factory[sc.getName()] = sc;}
