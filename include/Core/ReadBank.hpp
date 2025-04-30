@@ -16,13 +16,23 @@
 namespace Core {
 inline static auto load_bank_by_index(const hipo::bank& from_bank, const std::string& idx) -> std::map<int, std::vector<int>> {
     std::map<int, std::vector<int>> map;
-    if (from_bank.getRows() > 0) {
-        for (int i_from = 0; i_from < from_bank.getRows(); i_from++) {
-            int iTo = from_bank.get<float>(idx.data(), i_from);
-            if (!map.contains(iTo)) map.try_emplace(iTo);
-            map.at(iTo).emplace_back(i_from);
+
+    const int rows = from_bank.getRows();
+    if (rows <= 0) return map;
+    map.reserve(std::min(rows, 64));  // Reserve reasonable space for unique keys
+    const char* idx_name = idx.data();
+    constexpr int BATCH_SIZE = 16;
+
+    for (int i_from = 0; i_from < rows; i_from += BATCH_SIZE) {
+        const int end = std::min(i_from + BATCH_SIZE, rows);
+        for (int j = i_from; j < end; j++) {
+            int iTo = from_bank.get<float>(idx_name, j);
+            auto& vec = map[iTo];
+            if (vec.empty()) vec.reserve(16);
+            vec.push_back(j);
         }
     }
+
     return map;
 }
 
@@ -39,7 +49,6 @@ struct CherenkovBank {
     float dphi = std::numeric_limits<float>::quiet_NaN();
     int status = std::numeric_limits<int>::quiet_NaN();
 };
-
 
 inline auto read_Cherenkov_bank(const hipo::bank& REC_Cherenkov, const int pindex) -> CherenkovBank {
     auto map = load_bank_by_index(REC_Cherenkov, "pindex");
@@ -148,6 +157,97 @@ inline auto read_Calorimeter_bank(const hipo::bank& REC_Calorimeter, const int p
         } else if (layer == 7) {
             populate_calorimeter_struct(output.outer, i);
         }
+    }
+
+    return output;
+}
+
+struct DCTrackBank {
+    int index = std::numeric_limits<int>::quiet_NaN();
+    int pindex = std::numeric_limits<int>::quiet_NaN();
+    int detector = std::numeric_limits<int>::quiet_NaN();
+    int sector = std::numeric_limits<int>::quiet_NaN();
+    int status = std::numeric_limits<int>::quiet_NaN();
+    int q = std::numeric_limits<int>::quiet_NaN();
+    float chi2 = std::numeric_limits<int>::quiet_NaN();
+    int ndf = std::numeric_limits<int>::quiet_NaN();
+    int hbindex = std::numeric_limits<int>::quiet_NaN();
+};
+
+inline auto read_Track_bank(const hipo::bank& REC_Track, const int pindex) -> DCTrackBank {
+    auto map = load_bank_by_index(REC_Track, "pindex");
+    DCTrackBank output;
+
+    if (!map.contains(pindex)) return output;
+
+    for (int i : map.at(pindex)) {
+        if (REC_Track.get<int>("detector", i) == 6) {
+            output.index = REC_Track.get<int>("index", i);
+            output.pindex = REC_Track.get<int>("pindex", i);
+            output.detector = REC_Track.get<int>("detector", i);
+            output.sector = REC_Track.get<int>("sector", i);
+            output.status = REC_Track.get<int>("status", i);
+            output.q = REC_Track.get<int>("q", i);
+            output.chi2 = REC_Track.get<float>("chi2", i);
+            output.ndf = REC_Track.get<int>("NDF", i);
+            output.hbindex = REC_Track.get<int>("hbindex", i);
+        }
+    }
+
+    return output;
+}
+
+struct TrajBank {
+    int pindex = std::numeric_limits<int>::quiet_NaN();
+    int index = std::numeric_limits<int>::quiet_NaN();
+    int detector = std::numeric_limits<int>::quiet_NaN();
+    int layer = std::numeric_limits<int>::quiet_NaN();
+    double x = std::numeric_limits<double>::quiet_NaN();
+    double y = std::numeric_limits<double>::quiet_NaN();
+    double z = std::numeric_limits<double>::quiet_NaN();
+    double cx = std::numeric_limits<double>::quiet_NaN();
+    double cy = std::numeric_limits<double>::quiet_NaN();
+    double cz = std::numeric_limits<double>::quiet_NaN();
+    double path = std::numeric_limits<double>::quiet_NaN();
+    double edge = std::numeric_limits<double>::quiet_NaN();
+};
+
+struct DCTrajBank {
+    TrajBank region1;
+    TrajBank region2;
+    TrajBank region3;
+};
+
+inline auto read_Traj_bank(const hipo::bank& REC_Traj, const int pindex) -> DCTrajBank {
+    auto map = load_bank_by_index(REC_Traj, "pindex");
+    DCTrajBank output;
+
+    if (!map.contains(pindex)) return output;
+
+    auto populate_traj_struct = [&REC_Traj](TrajBank& region, const int i) {
+        region.pindex = REC_Traj.get<int>("pindex", i);
+        region.index = REC_Traj.get<int>("index", i);
+        region.detector = REC_Traj.get<int>("detector", i);
+        region.layer = REC_Traj.get<int>("layer", i);
+        region.x = REC_Traj.get<double>("x", i);
+        region.y = REC_Traj.get<double>("y", i);
+        region.z = REC_Traj.get<double>("z", i);
+        region.cx = REC_Traj.get<double>("cx", i);
+        region.cy = REC_Traj.get<double>("cy", i);
+        region.cz = REC_Traj.get<double>("cz", i);
+        region.path = REC_Traj.get<double>("path", i);
+        region.edge = REC_Traj.get<double>("edge", i);
+    };
+
+    for (int i : map.at(pindex)) {
+        if (REC_Traj.get<int>("detector", i) == 6 and REC_Traj.get<int>("layer", i) == 6)
+            populate_traj_struct(output.region1, i);
+
+        if (REC_Traj.get<int>("detector", i) == 6 and REC_Traj.get<int>("layer", i) == 18)
+            populate_traj_struct(output.region2, i);
+
+        if (REC_Traj.get<int>("detector", i) == 6 and REC_Traj.get<int>("layer", i) == 36)
+            populate_traj_struct(output.region3, i);
     }
 
     return output;

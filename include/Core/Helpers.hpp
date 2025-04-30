@@ -291,7 +291,7 @@ requires std::copyable<std::ranges::range_value_t<Range>> [[nodiscard]] auto gen
     using T = std::ranges::range_value_t<Range>;
     std::vector<std::pair<T, T>> pairs;
 
-    if (size < 2) return {};
+    if (range.size() < 2) return {};
 
     pairs.reserve((std::ranges::distance(range) * (std::ranges::distance(range) - 1)) / 2);  // Pre-allocate memory for efficiency
 
