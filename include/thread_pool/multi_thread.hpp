@@ -14,17 +14,7 @@
 #include <thread_pool/BS_thread_pool.hpp>
 #include <thread_pool/BS_thread_pool_utils.hpp>
 
-/**
- * @brief Format a value to a string with specified precision
- * @tparam T Type of the value to format
- * @param value The value to format
- * @param precision Number of decimal places (default: 2)
- * @return Formatted string
- */
-template <typename T>
-std::string format_string(const T& value, int precision = 2) {
-    return fmt::format("{:.{}f}", value, precision);
-}
+
 
 /**
  * @brief Process multiple files in parallel using a reader function

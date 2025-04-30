@@ -9,33 +9,65 @@
 #include <ranges>
 #include <vector>
 
+// <fmt> headers
+#include <fmt/core.h>
+
+// ROOT headers
+#include <TH1.h>
+#include <TROOT.h>
+#include <TStyle.h>
+
 // Project headers
 #include <Core/Constantes.hpp>
 #include <Core/Particle.hpp>
+#include <Core/Runs.hpp>
 
 namespace Core {
 
 /**
  * @brief Formats a given value into a string with a specified precision.
  * 
- * This function takes a value of any type that can be streamed into a 
- * `std::stringstream` and converts it into a string representation with 
- * a fixed number of decimal places.
- * 
- * Mostly use to format floating-point numbers into a string with a fixed 
- * number of decimal. 
+ * This function takes a value of any type that can be formatted by fmt
+ * and converts it into a string representation with a fixed number of 
+ * decimal places.
  * 
  * @tparam T The type of the value to be formatted.
- * @param a The value to format.
+ * @param value The value to format.
  * @param precision The number of decimal places to include in the formatted string.
- *                   Defaults to 2 if not specified.
+ *                  Defaults to 2 if not specified.
  * @return std::string The formatted string representation of the input value.
  */
 template <typename T>
-inline auto format_string(const T a, int precision = 2) -> std::string {
-    std::stringstream stream;
-    stream << std::fixed << std::setprecision(precision) << a;
-    return stream.str();
+std::string format_string(const T& value, int precision = 2) {
+    return fmt::format("{:.{}f}", value, precision);
+}
+
+inline auto set_ROOT_option() -> void {
+    ROOT::EnableThreadSafety();
+    ROOT::EnableImplicitMT();
+    TH1::SetDefaultSumw2(kTRUE);
+
+    gErrorIgnoreLevel = kPrint;  // setting it to kPrint will print all messages again. kError, kFatal
+
+    // gStyle->SetOptStat(0);
+    gStyle->SetOptFit(1111);
+    gStyle->SetNumberContours(255);
+    gStyle->SetImageScaling(3.);
+
+    gStyle->SetLineWidth(1);
+    gStyle->SetFrameLineWidth(1);
+    gStyle->SetHistLineWidth(1);
+    gStyle->SetFuncWidth(1);
+    gStyle->SetGridWidth(1);
+    // gStyle->SetLineStyleString(1, "[12 12]");  // postscript dashes
+
+    // put tick marks on top and RHS of plots
+    gStyle->SetPadTickX(1);
+    gStyle->SetPadTickY(1);
+    gStyle->SetNdivisions(505, "x");
+    gStyle->SetNdivisions(510, "y");
+
+    gStyle->SetTextFont(42);
 }
 
 /**
@@ -55,28 +87,30 @@ inline auto format_string(const T a, int precision = 2) -> std::string {
  * - The output size is reduced to a percentage of the total filtered files, as specified by the `dataSize` parameter.
  * 
  * @note
- * - The function assumes the directory exists and is accessible.
  * - If `dataSize` is set to a value less than 100, the output vector will contain fewer files.
  * - The function uses C++17 filesystem library and C++20 ranges library features.
  */
-inline auto read_recursive_file_in_directory(const std::filesystem::path& directory, const float dataSize = 100) -> std::vector<std::string> {
-    auto f = [](const std::filesystem::directory_entry& entry) {
-        return std::string(entry.path());
-    };
-    auto pred = [](std::string_view fileName) {
-        return fileName.find(".hipo") != std::string::npos;
-    };
+inline auto read_recursive_file_in_directory(const std::filesystem::path& directory, const double percentage = 100) -> std::vector<std::string> {
 
-    std::vector<std::string> fileNames;
-    std::vector<std::string> output;
-    std::vector<std::string> reduceFiles;
-    auto iterator = std::filesystem::recursive_directory_iterator{directory};
-    std::transform(begin(iterator), end(iterator), std::back_inserter(fileNames), f);
-    std::ranges::copy_if(fileNames, std::back_inserter(output), pred);
-    std::ranges::sort(output);
+    // Check if the given directory exists and it is a directory.
+    if (!std::filesystem::exists(directory)) throw std::runtime_error(fmt::format("Directory '{}' does not exist", directory.string()));
+    if (!std::filesystem::is_directory(directory)) throw std::runtime_error(fmt::format("Path '{}' is not a directory", directory.string()));
+    // Validate that the percentage is between 0 and 100.
+    if (percentage < 0.0 || percentage > 100.0) throw std::out_of_range("Percentage must be between 0 and 100. Given: " + std::to_string(percentage));
 
-    output.resize(static_cast<int>(dataSize / 100 * static_cast<float>(output.size())));
-    return output;
+    std::vector<std::string> files;
+    //  Iterate recursively over the directory. Only add regular files with the ".hipo" extension to the list.
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(directory)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".hipo") files.push_back(entry.path().string());
+    }
+
+    std::ranges::sort(files);
+    // Calculate the number of files to retain based on the provided percentage.
+    const std::size_t total = files.size();
+    const std::size_t num_to_keep = static_cast<std::size_t>(std::round((percentage / 100.0f) * total));
+    if (num_to_keep < total) files.resize(num_to_keep);
+
+    return files;
 }
 
 /**
@@ -113,8 +147,6 @@ inline auto find_trigger_electron(const std::vector<Core::Particle>& electrons) 
  *         electron is found.
  */
 inline auto find_most_energetic_electron(const std::vector<Core::Particle>& electrons) -> std::optional<Core::Particle> {
-    if (electrons.empty()) return std::nullopt;
-
     if (auto result = std::ranges::max_element(electrons, [](const Core::Particle& a, const Core::Particle& b) { return a.E() < b.E(); });
         result != electrons.end() && result->p() != 0.0) {
         return *result;
@@ -147,13 +179,24 @@ inline auto find_most_energetic_electron(const std::vector<Core::Particle>& elec
 inline auto compute_energy(double px, double py, double pz, int pid) -> double {
     constexpr auto get_mass = [](int pid) -> double {
         switch (pid) {
-            case 11: return Core::Constantes::ElectronMass;
-            case 22: return 0.0;
-            case 211: case -211: return Core::Constantes::PionMass;
-            case 321: case -321: return Core::Constantes::KaonMass;
-            case 2212: case -2212: return Core::Constantes::ProtonMass;
-            case 2112: case -2112: return Core::Constantes::NeutronMass;
-            default: return std::numeric_limits<double>::quiet_NaN();
+            case 11:
+                return Core::Constantes::ElectronMass;
+            case 22:
+                return 0.0;
+            case 211:
+            case -211:
+                return Core::Constantes::PionMass;
+            case 321:
+            case -321:
+                return Core::Constantes::KaonMass;
+            case 2212:
+            case -2212:
+                return Core::Constantes::ProtonMass;
+            case 2112:
+            case -2112:
+                return Core::Constantes::NeutronMass;
+            default:
+                return std::numeric_limits<double>::quiet_NaN();
         }
     };
 
@@ -241,14 +284,16 @@ inline double warp_neg_pos_pi(double angle) {
  * @example
  * std::vector<int> numbers = {1, 2, 3};
  * auto pairs = generate_unique_pairs(numbers);
- * // pairs will contain: {(1, 2), (1, 3), (2, 3)}
+ * pairs will contain: {(1, 2), (1, 3), (2, 3)}
  */
 template <std::ranges::forward_range Range>
-requires std::copyable<std::ranges::range_value_t<Range>>
-[[nodiscard]] auto generate_unique_pairs(const Range& range) -> std::vector<std::pair<std::ranges::range_value_t<Range>, std::ranges::range_value_t<Range>>> {
+requires std::copyable<std::ranges::range_value_t<Range>> [[nodiscard]] auto generate_unique_pairs(const Range& range) -> std::vector<std::pair<std::ranges::range_value_t<Range>, std::ranges::range_value_t<Range>>> {
     using T = std::ranges::range_value_t<Range>;
     std::vector<std::pair<T, T>> pairs;
-    pairs.reserve((std::ranges::distance(range) * (std::ranges::distance(range) - 1)) / 2); // Pre-allocate memory for efficiency
+
+    if (size < 2) return {};
+
+    pairs.reserve((std::ranges::distance(range) * (std::ranges::distance(range) - 1)) / 2);  // Pre-allocate memory for efficiency
 
     for (auto it1 = std::ranges::begin(range); it1 != std::ranges::end(range); ++it1) {
         for (auto it2 = std::next(it1); it2 != std::ranges::end(range); ++it2) {
@@ -319,7 +364,7 @@ inline auto find_binning(const std::vector<double>& values, int numBins = 6) -> 
  * @param vec A vector of run numbers to match against the file names.
  * @return A vector of strings containing the filtered file names that match the run numbers.
  */
- inline auto select_runs(const std::vector<std::string>& runs, const std::vector<std::string>& vec) -> std::vector<std::string> {
+inline auto select_runs(const std::vector<std::string>& runs, const std::vector<std::string>& vec) -> std::vector<std::string> {
     auto filtered = runs | std::ranges::views::filter([&vec](const std::string& file_name) {
                         return std::ranges::any_of(vec, [&file_name](const std::string& run_num) {
                             return file_name.find(run_num) != std::string::npos;

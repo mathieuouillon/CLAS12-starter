@@ -4,7 +4,7 @@
 void theta_e()
 {
 //=========Macro generated from canvas: c1/
-//=========  (Wed Apr 30 11:50:49 2025) by ROOT version 6.34.08
+//=========  (Wed Apr 30 12:49:02 2025) by ROOT version 6.34.08
    TCanvas *c1 = new TCanvas("c1", "",0,0,800,600);
    c1->SetHighLightColor(2);
    c1->Range(-5.526316,-0.9947368,40.52632,7.294737);
