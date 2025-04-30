@@ -19,7 +19,6 @@ inline static auto load_bank_by_index(const hipo::bank& from_bank, const std::st
 
     const int rows = from_bank.getRows();
     if (rows <= 0) return map;
-    map.reserve(std::min(rows, 64));  // Reserve reasonable space for unique keys
     const char* idx_name = idx.data();
     constexpr int BATCH_SIZE = 16;
 

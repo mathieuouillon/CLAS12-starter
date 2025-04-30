@@ -25,18 +25,18 @@
  * @param update_interval Progress update interval in milliseconds (default: 1000ms)
  */
 template <typename Reader>
-void multithread_reader(
-    const Reader& reader,
+auto multithread_reader(
+    Reader& reader,
     const std::vector<std::string>& files,
     unsigned int num_threads = 6,
-    unsigned int update_interval = 1000) {
+    unsigned int update_interval = 1000) -> void {
     namespace bk = barkeep;
 
     num_threads = std::max(1u, num_threads); // Ensure at least one thread
     BS::thread_pool pool(num_threads); // Create thread pool with specified number of threads
 
     // Queue all files for processing
-    for (const auto& file : files) {
+    for (auto& file : files) {
         pool.detach_task([&reader, file] {
             try {
                 reader(file);

@@ -16,6 +16,7 @@
 #include <Core/Particle.hpp>
 #include <Core/ReadBank.hpp>
 #include <study1/Histograms.hpp>
+#include <vector>
 #include <hipo4/hipoeventiterator.h>
 namespace study1 {
 
@@ -25,22 +26,26 @@ class Reader {
         std::vector<Core::Particle> electrons;
     };
 
+
+    // ****** private variables
     Histograms& m_histograms;
     const toml::parse_result& m_config;
+    std::unordered_map<int, std::vector<Core::Particle>> particle_collections;
 
-    const double NaN = std::numeric_limits<double>::quiet_NaN();
+    // ****** private constants
+    static constexpr double NaN = std::numeric_limits<double>::quiet_NaN();
 
     // ****** private methods
-    auto get_topology(const hipo::bank& REC_Particle) const -> Topology;
     auto select_electron(const Core::Particle& electron, const hipo::bank& REC_Calorimeter, const hipo::bank& REC_Cherenkov) const -> bool;
+    auto get_topology(const hipo::bank& REC_Particle) -> void;
 
    public:
     // ****** constructors and destructor
-    explicit Reader(Histograms& histograms, const toml::parse_result& config);
+    explicit Reader(Histograms& histograms, const toml::parse_result& config, const std::vector<int>& pids = {11});
     ~Reader();
 
     // ****** public methods
-    auto operator()(const std::string& file) const -> void;
+    auto operator()(const std::string& file) -> void;
 };
 
 }  // namespace study1

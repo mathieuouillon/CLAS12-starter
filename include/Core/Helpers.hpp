@@ -155,6 +155,30 @@ inline auto find_most_energetic_electron(const std::vector<Core::Particle>& elec
     return std::nullopt;
 }
 
+inline auto get_mass(const int pid) -> double {
+    switch (pid) {
+        case 11:
+            return Core::Constantes::ElectronMass;
+        case 22:
+            return 0.0;
+        case 211:
+        case -211:
+            return Core::Constantes::PionMass;
+        case 321:
+        case -321:
+            return Core::Constantes::KaonMass;
+        case 2212:
+        case -2212:
+            return Core::Constantes::ProtonMass;
+        case 2112:
+        case -2112:
+            return Core::Constantes::NeutronMass;
+        default:
+            return std::numeric_limits<double>::quiet_NaN();
+    }
+    return std::numeric_limits<double>::quiet_NaN();
+}
+
 /**
  * @brief Computes the total energy of a particle given its momentum components and particle ID.
  *
@@ -177,29 +201,6 @@ inline auto find_most_energetic_electron(const std::vector<Core::Particle>& elec
  * @return The total energy of the particle (in GeV). If the PID is unsupported, returns NaN.
  */
 inline auto compute_energy(double px, double py, double pz, int pid) -> double {
-    constexpr auto get_mass = [](int pid) -> double {
-        switch (pid) {
-            case 11:
-                return Core::Constantes::ElectronMass;
-            case 22:
-                return 0.0;
-            case 211:
-            case -211:
-                return Core::Constantes::PionMass;
-            case 321:
-            case -321:
-                return Core::Constantes::KaonMass;
-            case 2212:
-            case -2212:
-                return Core::Constantes::ProtonMass;
-            case 2112:
-            case -2112:
-                return Core::Constantes::NeutronMass;
-            default:
-                return std::numeric_limits<double>::quiet_NaN();
-        }
-    };
-
     double mass = get_mass(pid);
     return std::hypot(std::hypot(px, py, pz), mass);
 }
