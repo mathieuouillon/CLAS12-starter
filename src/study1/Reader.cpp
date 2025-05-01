@@ -15,7 +15,7 @@ Reader::~Reader() = default;
 auto Reader::operator()(const std::string& file) -> void {
 
     hipo::hipoeventfile events(file);
-
+    
     for (auto event : events) {
 
         hipo::bank REC_Particle = event.get_bank("REC::Particle");

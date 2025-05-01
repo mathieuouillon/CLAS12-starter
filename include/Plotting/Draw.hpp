@@ -123,7 +123,7 @@ struct Position {
      *
      * @return None.
      */
-inline auto update_tile_stats(const TObjArray& boxes, bool haveFitPars, int numColumns = 0, int numRows = 0) -> void {
+inline auto update_tile_stats(const TObjArray& boxes) -> void {
     std::vector<Position> positions;
     for (int i = 0; i < boxes.GetEntries(); i++) {
         auto stat_box = static_cast<TPaveStats*>(boxes.At(i));
@@ -148,7 +148,7 @@ inline auto update_tile_stats(const TObjArray& boxes, bool haveFitPars, int numC
 }
 
 template <typename... Args>
-inline auto set_stat_boxes(const std::shared_ptr<TCanvas>& canvas, bool haveFitPars, Args&&... args) -> void {
+inline auto set_stat_boxes(const std::shared_ptr<TCanvas>& canvas, Args&&... args) -> void {
     canvas->Update();
     TObjArray boxes;
     for (const auto& h : {args...}) {
@@ -157,7 +157,7 @@ inline auto set_stat_boxes(const std::shared_ptr<TCanvas>& canvas, bool haveFitP
         st->Draw();
         boxes.Add(st);
     }
-    update_tile_stats(boxes, haveFitPars);
+    update_tile_stats(boxes);
     canvas->Modified();
 }
 
@@ -222,7 +222,7 @@ inline auto draw_hist1D(const std::shared_ptr<TH1>& h, const std::string& path, 
         line.DrawLine(cut, 0, cut, 0.8 * h->GetMaximum());
     }
 
-    if (args.opt_stat.data() == "emr") set_stat_boxes(canvas, false, h);
+    if (args.opt_stat == "emr") set_stat_boxes(canvas, h);
     save_canvas(canvas, path, file_name);
 }
 
@@ -271,7 +271,7 @@ inline auto draw_hist1D(const std::shared_ptr<TH1>& h1, const std::shared_ptr<TH
         legend->Draw();
     }
 
-    if (args.opt_stat.data() == "emr") set_stat_boxes(canvas, false, h1, h2);
+    if (args.opt_stat == "emr") set_stat_boxes(canvas, h1, h2);
     save_canvas(canvas, path, file_name);
 }
 
