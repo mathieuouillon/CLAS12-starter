@@ -1,5 +1,4 @@
 #include <study1/Reader.hpp>
-#include <vector>
 
 namespace study1 {
 
@@ -13,15 +12,17 @@ Reader::Reader(Histograms& histograms, const toml::parse_result& config, const s
 Reader::~Reader() = default;
 
 auto Reader::operator()(const std::string& file) -> void {
-
-    hipo::hipoeventfile events(file);
     
+    hipo::hipoeventfile events(file);
+
     for (auto event : events) {
 
-        hipo::bank REC_Particle = event.get_bank("REC::Particle");
-        hipo::bank REC_Calorimeter = event.get_bank("REC::Calorimeter");
-        hipo::bank REC_Cherenkov = event.get_bank("REC::Cherenkov");
-        hipo::bank REC_Event = event.get_bank("REC::Event");
+        // std::cout << "Processing event" << std::endl;
+
+        hipo::bank& REC_Particle = event.get_bank("REC::Particle");
+        hipo::bank& REC_Calorimeter = event.get_bank("REC::Calorimeter");
+        hipo::bank& REC_Cherenkov = event.get_bank("REC::Cherenkov");
+        hipo::bank& REC_Event = event.get_bank("REC::Event");
 
         if (REC_Particle.getRows() == 0) continue;
 
@@ -34,7 +35,12 @@ auto Reader::operator()(const std::string& file) -> void {
 
         bool pass_electron_cuts = select_electron(electron, REC_Calorimeter, REC_Cherenkov);
         if (!pass_electron_cuts) continue;
+
+
     }
+    
+    
+    
 }
 
 auto Reader::get_topology(const hipo::bank& REC_Particle) -> void {
