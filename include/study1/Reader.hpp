@@ -22,11 +22,6 @@ namespace study1 {
 
 class Reader {
    private:
-    struct Topology {
-        std::vector<Core::Particle> electrons;
-    };
-
-
     // ****** private variables
     Histograms& m_histograms;
     const toml::parse_result& m_config;
