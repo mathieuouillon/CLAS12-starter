@@ -12,10 +12,15 @@ Reader::Reader(Histograms& histograms, const toml::parse_result& config, const s
 Reader::~Reader() = default;
 
 auto Reader::operator()(const std::string& file) -> void {
-    
+
     hipo::hipoeventfile events(file);
 
     for (auto event : events) {
+
+        // Clear the particle collections for each event
+        for (auto& [key, vec] : particle_collections) {
+            vec.clear();
+        }
 
         // std::cout << "Processing event" << std::endl;
 
@@ -35,12 +40,7 @@ auto Reader::operator()(const std::string& file) -> void {
 
         bool pass_electron_cuts = select_electron(electron, REC_Calorimeter, REC_Cherenkov);
         if (!pass_electron_cuts) continue;
-
-
     }
-    
-    
-    
 }
 
 auto Reader::get_topology(const hipo::bank& REC_Particle) -> void {
