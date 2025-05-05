@@ -4,7 +4,6 @@ namespace study1 {
 
 Reader::Reader(Histograms& histograms, const toml::parse_result& config, const std::vector<int>& pids)
     : m_histograms(histograms), m_config(config), m_pids(pids) {
-
 }
 
 Reader::~Reader() = default;
@@ -16,9 +15,7 @@ auto Reader::operator()(const std::string& file) -> void {
         particle_collections[pid] = std::vector<Core::Particle>();
     }
 
-    hipo::hipoeventfile events(file);
-
-    for (auto event : events) {
+    for (hipo::hipoeventfile events(file); auto event : events) {
 
         // Clear the particle collections for each event
         for (auto& [key, vec] : particle_collections) {
