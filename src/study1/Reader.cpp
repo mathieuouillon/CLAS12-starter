@@ -3,15 +3,18 @@
 namespace study1 {
 
 Reader::Reader(Histograms& histograms, const toml::parse_result& config, const std::vector<int>& pids)
-    : m_histograms(histograms), m_config(config) {
-    for (const int pid : pids) {
-        particle_collections[pid] = {};
-    }
+    : m_histograms(histograms), m_config(config), m_pids(pids) {
+
 }
 
 Reader::~Reader() = default;
 
 auto Reader::operator()(const std::string& file) -> void {
+
+    particles_map_t particle_collections;
+    for (const auto& pid : m_pids) {
+        particle_collections[pid] = std::vector<Core::Particle>();
+    }
 
     hipo::hipoeventfile events(file);
 
@@ -31,10 +34,10 @@ auto Reader::operator()(const std::string& file) -> void {
 
         if (REC_Particle.getRows() == 0) continue;
 
-        get_topology(REC_Particle);
+        get_topology(REC_Particle, particle_collections);
         const std::vector<Core::Particle>& electrons = particle_collections[11];
 
-        auto possible_electron = Core::find_trigger_electron(electrons);
+        auto possible_electron = Core::find_trigger_electron(electrons, {2000, 4000});
         if (!possible_electron.has_value()) continue;
         Core::Particle electron = possible_electron.value();
 
@@ -43,7 +46,7 @@ auto Reader::operator()(const std::string& file) -> void {
     }
 }
 
-auto Reader::get_topology(const hipo::bank& REC_Particle) -> void {
+auto Reader::get_topology(const hipo::bank& REC_Particle, particles_map_t& particle_collections) -> void {
     const int rows = REC_Particle.getRows();
 
     // Pre-allocate for each particle types

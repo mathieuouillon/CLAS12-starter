@@ -21,18 +21,20 @@
 namespace study1 {
 
 class Reader {
+    using particles_map_t = std::unordered_map<int, std::vector<Core::Particle>>;
+
    private:
     // ****** private variables
     Histograms& m_histograms;
     const toml::parse_result& m_config;
-    std::unordered_map<int, std::vector<Core::Particle>> particle_collections;
+    const std::vector<int> m_pids;
 
     // ****** private constants
     static constexpr double NaN = std::numeric_limits<double>::quiet_NaN();
 
     // ****** private methods
     auto select_electron(const Core::Particle& electron, const hipo::bank& REC_Calorimeter, const hipo::bank& REC_Cherenkov) const -> bool;
-    auto get_topology(const hipo::bank& REC_Particle) -> void;
+    auto get_topology(const hipo::bank& REC_Particle, particles_map_t& particle_collections) -> void;
 
    public:
     // ****** constructors and destructor

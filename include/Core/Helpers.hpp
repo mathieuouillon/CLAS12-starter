@@ -125,12 +125,19 @@ inline auto read_recursive_file_in_directory(const std::filesystem::path& direct
  * @return An `std::optional<Core::Particle>` containing the first trigger electron if found,
  *         or `std::nullopt` if no valid trigger electron is found.
  */
-inline auto find_trigger_electron(const std::vector<Core::Particle>& electrons) -> std::optional<Core::Particle> {
-    if (auto result = std::ranges::find_if(electrons, [](const Core::Particle& electron) { return electron.status() < 0; });
-        result != electrons.end() && result->p() != 0.0) {
-        return *result;
-    }
-    return std::nullopt;
+inline auto find_trigger_electron(const std::vector<Core::Particle>& electrons, std::pair<double, double> status_range) -> std::optional<Core::Particle> {
+
+    auto it = std::find_if(electrons.begin(), electrons.end(),
+                           [&status_range](const Core::Particle& electron) {
+                               const double absStatus = std::abs(electron.status());
+                               return electron.status() < 0.0 &&          // Negative status
+                                      electron.p() != 0.0 &&              // Non-zero momentum
+                                      status_range.first <= absStatus &&  // Status within range
+                                      absStatus < status_range.second;
+                           });
+
+    // Return the found electron or std::nullopt if none found
+    return (it != electrons.end()) ? std::optional<Core::Particle>(*it) : std::nullopt;
 }
 
 /**
