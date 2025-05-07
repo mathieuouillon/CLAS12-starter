@@ -10,6 +10,7 @@
 #include <toml++/toml.h>
 
 // Project headers
+#include <hipo4/hipoeventiterator.h>
 #include <hipo4/reader.h>
 #include <Core/Constantes.hpp>
 #include <Core/Helpers.hpp>
@@ -17,7 +18,7 @@
 #include <Core/ReadBank.hpp>
 #include <study1/Histograms.hpp>
 #include <vector>
-#include <hipo4/hipoeventiterator.h>
+
 namespace study1 {
 
 class Reader {
@@ -27,7 +28,7 @@ class Reader {
     // ****** private variables
     Histograms& m_histograms;
     const toml::parse_result& m_config;
-    const std::vector<int> m_pids;
+    std::vector<int> m_pids;
 
     // ****** private constants
     static constexpr double NaN = std::numeric_limits<double>::quiet_NaN();
@@ -43,6 +44,8 @@ class Reader {
 
     // ****** public methods
     auto operator()(const std::string& file) -> void;
+
+    auto set_pids(const std::vector<int>& pids) -> void { m_pids = pids; }
 };
 
 }  // namespace study1

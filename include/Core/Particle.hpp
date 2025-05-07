@@ -1,6 +1,7 @@
 #pragma once
 
 // C++ headers
+#include <cmath>
 #include <limits>
 
 // ROOT headers
@@ -39,7 +40,7 @@ class Particle {
 
    public:
     // ****** constructors and destructor
-    Particle() = delete;
+    Particle() = default;
     Particle(int pdg, int status, int index, int charge, double mass, double px, double py, double pz, double E, double vx, double vy, double vz, double vt, double beta, double chi2pid);
 
     Particle(const Particle&) = default;
@@ -77,6 +78,10 @@ class Particle {
     auto py() const -> double;
     auto pz() const -> double;
     auto mass() const -> double;
+
+    auto is_valid() const -> bool {
+        return !std::isnan(m_px) && !std::isnan(m_py) && !std::isnan(m_pz) && !std::isnan(m_E) && !std::isnan(m_vx) && !std::isnan(m_vy) && !std::isnan(m_vz) && !std::isnan(m_vt);
+    }
 
     // ****** operators
     auto operator==(const Particle& other) const -> bool { return m_index == other.m_index; }

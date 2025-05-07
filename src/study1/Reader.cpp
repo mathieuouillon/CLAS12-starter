@@ -22,8 +22,6 @@ auto Reader::operator()(const std::string& file) -> void {
             vec.clear();
         }
 
-        // std::cout << "Processing event" << std::endl;
-
         hipo::bank& REC_Particle = event.get_bank("REC::Particle");
         hipo::bank& REC_Calorimeter = event.get_bank("REC::Calorimeter");
         hipo::bank& REC_Cherenkov = event.get_bank("REC::Cherenkov");
@@ -32,11 +30,9 @@ auto Reader::operator()(const std::string& file) -> void {
         if (REC_Particle.getRows() == 0) continue;
 
         get_topology(REC_Particle, particle_collections);
-        const std::vector<Core::Particle>& electrons = particle_collections[11];
 
-        auto possible_electron = Core::find_trigger_electron(electrons, {2000, 4000});
-        if (!possible_electron.has_value()) continue;
-        Core::Particle electron = possible_electron.value();
+        auto electron = Core::find_trigger_electron(particle_collections[11], {2000, 4000}).value_or(Core::Particle{});
+        if (!electron.is_valid()) continue;
 
         bool pass_electron_cuts = select_electron(electron, REC_Calorimeter, REC_Cherenkov);
         if (!pass_electron_cuts) continue;
