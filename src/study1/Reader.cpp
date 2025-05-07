@@ -15,7 +15,7 @@ auto Reader::operator()(const std::string& file) -> void {
         particle_collections[pid] = std::vector<Core::Particle>();
     }
 
-    for (hipo::hipoeventfile events(file); auto event : events) {
+    for (hipo::hipoeventfile events(file); auto& event : events) {
 
         // Clear the particle collections for each event
         for (auto& [key, vec] : particle_collections) {

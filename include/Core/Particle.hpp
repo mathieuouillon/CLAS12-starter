@@ -1,6 +1,9 @@
 #pragma once
 
-// ROOT includes
+// C++ headers
+#include <limits>
+
+// ROOT headers
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 #include <TMath.h>
@@ -15,22 +18,22 @@ class Particle {
 
    private:
     // ****** private members
-    int m_pdgcode;
-    int m_status;
-    int m_index;
-    int m_charge;
+    int m_pdgcode{0};
+    int m_status{0};
+    int m_index{0};
+    int m_charge{0};
 
-    double m_mass;
-    double m_px;
-    double m_py;
-    double m_pz;
-    double m_E;
-    double m_vx;
-    double m_vy;
-    double m_vz;
-    double m_vt;
-    double m_beta;
-    double m_chi2pid;
+    double m_mass{std::numeric_limits<double>::quiet_NaN()};
+    double m_px{std::numeric_limits<double>::quiet_NaN()};
+    double m_py{std::numeric_limits<double>::quiet_NaN()};
+    double m_pz{std::numeric_limits<double>::quiet_NaN()};
+    double m_E{std::numeric_limits<double>::quiet_NaN()};
+    double m_vx{std::numeric_limits<double>::quiet_NaN()};
+    double m_vy{std::numeric_limits<double>::quiet_NaN()};
+    double m_vz{std::numeric_limits<double>::quiet_NaN()};
+    double m_vt{std::numeric_limits<double>::quiet_NaN()};
+    double m_beta{std::numeric_limits<double>::quiet_NaN()};
+    double m_chi2pid{std::numeric_limits<double>::quiet_NaN()};
 
     // ****** private methods
 
@@ -38,6 +41,12 @@ class Particle {
     // ****** constructors and destructor
     Particle() = delete;
     Particle(int pdg, int status, int index, int charge, double mass, double px, double py, double pz, double E, double vx, double vy, double vz, double vt, double beta, double chi2pid);
+
+    Particle(const Particle&) = default;
+    Particle(Particle&&) = default;
+    Particle& operator=(const Particle&) = default;
+    Particle& operator=(Particle&&) = default;
+    ~Particle() = default;
 
     // ****** public methods
     auto index() const -> int;
