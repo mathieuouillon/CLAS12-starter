@@ -29,11 +29,11 @@ auto Drawing::draw_electron_kinematics() -> void {
     const std::shared_ptr<TH1D> hist1D_vz_cut = m_histograms.electron.hist1D_vz_cut->Merge();
     // --------------------------------------------------------------------------------------------
 
-    Plotting::draw_hist1D(hist1D_p, hist1D_p_cut, m_path_electron, {.label = "p_{e} [GeV/c]"});
-    Plotting::draw_hist1D(hist1D_chi2, hist1D_chi2_cut, m_path_electron, {.cuts = {chi2_min_e, chi2_max_e}, .label = "chi2pid_{e}"});
-    Plotting::draw_hist1D(hist1D_phi, hist1D_phi_cut, m_path_electron, {.label = "#phi_{e} [deg.]"});
-    Plotting::draw_hist1D(hist1D_theta, hist1D_theta_cut, m_path_electron, {.label = "#theta_{e} [deg.]"});
-    Plotting::draw_hist1D(hist1D_vz, hist1D_vz_cut, m_path_electron, {.cuts = {vz_min_e, vz_max_e}, .label = "Vz_{e} [cm]"});
+    Plotting::draw_hist1D(hist1D_p, hist1D_p_cut, m_path_electron, {.x_label = "p_{e} [GeV/c]"});
+    Plotting::draw_hist1D(hist1D_chi2, hist1D_chi2_cut, m_path_electron, {.cuts = {chi2_min_e, chi2_max_e}, .x_label = "chi2pid_{e}"});
+    Plotting::draw_hist1D(hist1D_phi, hist1D_phi_cut, m_path_electron, {.x_label = "#phi_{e} [deg.]"});
+    Plotting::draw_hist1D(hist1D_theta, hist1D_theta_cut, m_path_electron, {.x_label = "#theta_{e} [deg.]"});
+    Plotting::draw_hist1D(hist1D_vz, hist1D_vz_cut, m_path_electron, {.cuts = {vz_min_e, vz_max_e}, .x_label = "Vz_{e} [cm]"});
 }
 
 
